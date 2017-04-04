@@ -109,7 +109,10 @@
             names: []
             roles: [role,"#{type}s_reader","#{type}s_writer"]
 
-        unless @session.couchdb_roles? and role in @session.couchdb_roles
+        is_admin = '_admin' in @session.couchdb_roles
+        is_role_admin = is_admin or role in @session.couchdb_roles
+
+        unless @session.couchdb_roles? and is_role_admin
           @res.status 403
           @json error:"Must be #{role}"
           @res.end()
