@@ -1,6 +1,6 @@
 {
   "name": "grumpy-actor",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "CouchDB documents for tools/trace/… databases",
   "main": "server.js",
   "scripts": {
