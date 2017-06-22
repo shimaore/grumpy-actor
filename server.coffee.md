@@ -88,10 +88,11 @@
           lib:
             reference: lib.reference
           tags:
-            reduce: '_stats'
+            reduce: '_count'
             map: '''
               -> require('views/lib/reference').tags.apply this, arguments
             '''
+
         validate_doc_update: '''
           -> require('views/lib/reference').validate_user_doc.apply this, arguments
         '''

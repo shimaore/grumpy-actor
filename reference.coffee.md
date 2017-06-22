@@ -10,46 +10,42 @@ Design document functions for `reference` databases
 
       @forbid_deletion()
 
-    sum = (acc,val) -> acc + val
-
     module.exports.tags = (doc) ->
-      return unless doc.tags? and doc.calls?
 
-      if 'emergency' in doc.tags
+We're only interested in newer format (huge-play@27.0) documents.
+
+      unless doc.type? and doc.timestamp?
         return
-      unless 'client-side' in doc.tags
-        return
+      {type,timestamp} = doc
 
-      duration = doc.calls
-        .map (call) ->
-          billable = parseInt call.report?.billable
-          if isNaN billable
-            0
-          else
-            billable / 1000
-        .reduce sum, 0
+Build
+-----
 
-      keys = doc.tags
-        .filter (tag) -> tag.match /:/
+Lookup a reference based on tags, fields, etc.
 
-      answered = 'answered' in doc.tags
-      ingress = 'ingress' in doc.tags
-      egress = 'egress' in doc.tags
+      tags = {}
 
-      tag = switch
-        when ingress and answered
-          'ingress-answered'
-        when ingress
-          'ingress-unanswered'
-        when egress
-          'egress'
+Ensure a document is only included once for a given key.
+
+      add_tag = (tag) ->
+        tags[tag] = true
+
+      add_tag "reference:#{doc.reference}"          if doc.reference?
+      add_tag "number_domain:#{doc.number_domain}"  if doc.number_domain?
+      add_tag "agent:#{doc.agent}"                  if doc.agent?
+      add_tag doc.tag                               if doc.tag?
+
+      doc.tags?.forEach add_tag
+      doc.in?.forEach add_tag
+
+Emit
+----
+
+      emit_tag = (tag) ->
+        if tag.match /:/
+          id = key.split ':'
+          emit [id...,timestamp], {type}
         else
-          'other' # should be empty
+          emit ['tag',tag,timestamp], {type}
 
-      start_time = doc.calls[0]?.tz_start_time ? doc.calls[0]?.start_time
-      date = start_time[0...10]
-
-      for key in keys
-        id = key.split ':'
-        full_id = id.concat [date,tag]
-        emit full_id, duration
+      Object.getOwnPropertyNames(tags).forEach emit_tag
