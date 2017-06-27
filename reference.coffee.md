@@ -30,6 +30,7 @@ Ensure a document is only included once for a given key.
       add_tag = (tag) ->
         tags[tag] = true
 
+      add_tag "reference:#{doc._id}"                if doc.type is 'reference'
       add_tag "reference:#{doc.reference}"          if doc.reference?
       add_tag "number_domain:#{doc.number_domain}"  if doc.number_domain?
       add_tag "agent:#{doc.agent}"                  if doc.agent?
