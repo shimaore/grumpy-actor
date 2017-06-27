@@ -43,7 +43,7 @@ Emit
 
       emit_tag = (tag) ->
         if tag.match /:/
-          id = key.split ':'
+          id = tag.split ':'
           emit [id...,timestamp], {type}
         else
           emit ['tag',tag,timestamp], {type}
