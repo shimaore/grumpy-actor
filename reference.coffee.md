@@ -10,6 +10,9 @@ Design document functions for `reference` databases
 
       @forbid_deletion()
 
+Build
+-----
+
     module.exports.tags = (doc) ->
 
 We're only interested in newer format (huge-play@27.0) documents.
@@ -18,35 +21,40 @@ We're only interested in newer format (huge-play@27.0) documents.
         return
       {type,timestamp} = doc
 
-Build
------
+      reference = doc._id if doc.type is 'reference'
+      reference ?= doc.reference
+      return unless reference
 
-Lookup a reference based on tags, fields, etc.
+This is multiple indices in one.
+The first part allows to locate all documents that are linked to a given reference.
 
-      tags = {}
+      emit reference
+
+The second part allows to lookup references based on tags, values, etc.
+
+      date = timestamp[0...10]
 
 Ensure a document is only included once for a given key.
 
-      add_tag = (tag) ->
-        tags[tag] = true
+      tags = {}
+      add_tag = (type,value) ->
+        tags[type] ?= {}
+        if value not of tags[type]
+          tags[type][value] = true
+          emit [type,value,date,reference]
 
-      add_tag "reference:#{doc._id}"                if doc.type is 'reference'
-      add_tag "reference:#{doc.reference}"          if doc.reference?
-      add_tag "number_domain:#{doc.number_domain}"  if doc.number_domain?
-      add_tag "agent:#{doc.agent}"                  if doc.agent?
-      add_tag doc.tag                               if doc.tag?
-
-      doc.tags?.forEach add_tag
-      doc.in?.forEach add_tag
-
-Emit
-----
-
-      emit_tag = (tag) ->
+      parse_add_tag = (tag) ->
         if tag.match /:/
           id = tag.split ':'
-          emit [id...,timestamp], {type}
+          add_tag id...
         else
-          emit ['tag',tag,timestamp], {type}
+          add_tag 'tag', tag
 
-      Object.getOwnPropertyNames(tags).forEach emit_tag
+      add_tag 'reference', reference              if reference?
+      add_tag 'number_domain', doc.number_domain  if doc.number_domain?
+      add_tag 'agent', doc.agent                  if doc.agent?
+      parse_add_tag doc.tag                       if doc.tag?
+
+      doc.tags?.forEach parse_add_tag
+      doc.in?.forEach parse_add_tag
+      return
