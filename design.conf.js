@@ -7,7 +7,6 @@ module.exports = {
   , rate: './rate.coffee.md'
   , cdr: './cdr.coffee.md'
   , trace: './trace.coffee.md'
-  , reference: './reference.coffee.md'
   },
   output: {
     // Use relative path (to the module)

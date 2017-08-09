@@ -29,9 +29,9 @@
   },
   "dependencies": {
     "frantic-team": "^1.1.0",
+    "pouchdb": "*",
     "reject-tombstones": "^1.0.0",
     "seem": "^2.0.0",
-    "shimaore-pouchdb": "^6.1.1",
     "superagent": "^3.5.2"
   }
 }

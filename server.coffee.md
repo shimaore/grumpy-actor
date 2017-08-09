@@ -12,14 +12,13 @@
       'rate'
       'cdr'
       'trace'
-      'reference'
     ]
     lib = {}
     for m in modules
       lib[m] = fs.readFileSync (path.join __dirname, "./#{m}.bundle.js"), 'utf-8'
 
     Replicator = require 'frantic-team'
-    PouchDB = require 'shimaore-pouchdb'
+    PouchDB = require 'pouchdb'
     request = require 'superagent'
     assert = require 'assert'
 
@@ -27,7 +26,6 @@
     assert lib.rate?, 'No lib.rate'
     assert lib.cdr?, 'No lib.cdr'
     assert lib.trace?, 'No lib.trace'
-    assert lib.reference?, 'No lib.reference'
 
     design_document =
       ruleset:
@@ -78,23 +76,6 @@
             trace: lib.trace
         validate_doc_update: '''
           -> require('views/lib/trace').validate_user_doc.apply this, arguments
-        '''
-
-      reference:
-        _id: "_design/#{pkg.name}"
-        version: pkg.version
-        language: 'coffeescript'
-        views:
-          lib:
-            reference: lib.reference
-          tags:
-            reduce: '_count'
-            map: '''
-              -> require('views/lib/reference').tags.apply this, arguments
-            '''
-
-        validate_doc_update: '''
-          -> require('views/lib/reference').validate_user_doc.apply this, arguments
         '''
 
     handler = (type) ->
@@ -204,4 +185,3 @@ The default prefixes for these are defined in `astonishing-competition` and `hug
 
       @put  /^\/cdr-[a-z\d_-]+\/?$/, @auth, handler 'cdr'
       @put  /^\/trace-[a-z\d_-]+\/?$/, @auth, handler 'trace'
-      @put  /^\/reference-[a-z\d_-]+\/?$/, @auth, handler 'reference'
