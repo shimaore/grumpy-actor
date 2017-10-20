@@ -18,8 +18,7 @@
       lib[m] = fs.readFileSync (path.join __dirname, "./#{m}.bundle.js"), 'utf-8'
 
     Replicator = require 'frantic-team'
-    PouchDB = require 'pouchdb-core'
-      .plugin require 'pouchdb-adapter-http'
+    PouchDB = require 'ccnq4-pouchdb'
     request = require 'superagent'
     assert = require 'assert'
 
