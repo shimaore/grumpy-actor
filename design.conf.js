@@ -3,10 +3,10 @@ var path = require('path')
 
 module.exports = {
   entry: {
-    ruleset: './ruleset.coffee.md'
-  , rate: './rate.coffee.md'
-  , cdr: './cdr.coffee.md'
-  , trace: './trace.coffee.md'
+    ruleset: './ruleset.js'
+  , rate: './rate.js'
+  , cdr: './cdr.js'
+  , trace: './trace.js'
   },
   output: {
     // Use relative path (to the module)
@@ -16,19 +16,11 @@ module.exports = {
   , libraryTarget: 'umd'
   },
   module: {
-    loaders: [
+    rules: [
       {
         test: /\.json$/,
         exclude: /node_modules/,
         loader: "json-loader"
-      }
-    , {
-        test: /\.coffee\.md$/,
-        exclude: /node_modules/,
-        loaders: [
-          "babel-loader"
-        , "coffee-loader?literate"
-        ]
       }
     ]
   }
