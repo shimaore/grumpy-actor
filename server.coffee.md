@@ -177,11 +177,12 @@ The `ruleset_` prefix is standard but not hard-coded.
       @put  /^\/ruleset_[a-z\d_-]+\/?$/, @auth, handler 'ruleset'
 
 These are in the `table` fields in the `rating` objects and are used by e.g. entertaining-crib.
-The `rates-` prefix is standard but not defined specifically anywhere.
+The `rates-` prefix is defined in `astonishing-competition`.
 
       @put  /^\/rates-[a-z\d_-]+\/?$/, @auth, handler 'rate'
 
 The default prefixes for these are defined in `astonishing-competition` and `huge-play`.
+(These are both currently unused; `astonishing-competition` still needs to be rewritten to properly aggregate upstream, while the trace code was never rewritten to use multiple databases.)
 
       @put  /^\/cdr-[a-z\d_-]+\/?$/, @auth, handler 'cdr'
       @put  /^\/trace-[a-z\d_-]+\/?$/, @auth, handler 'trace'
