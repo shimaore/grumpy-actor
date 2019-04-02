@@ -61,7 +61,7 @@
             reduce: '_stats'
             map: '''
               (doc) ->
-                emit [doc.client.account,doc.client.sub_account], doc.actual_amount
+                emit [doc.A,doc.S], doc.a
             '''
         validate_doc_update: '''
           -> require('views/lib/cdr').validate_user_doc.apply this, arguments
