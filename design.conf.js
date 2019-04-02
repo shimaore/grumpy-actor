@@ -13,7 +13,7 @@ module.exports = {
     path: path.join(__dirname,'.')
   , filename: '[name].bundle.js'
   , library: '[name]'
-  , libraryTarget: 'umd'
+  , libraryTarget: 'commonjs'
   },
   module: {
     rules: [
@@ -24,4 +24,5 @@ module.exports = {
       }
     ]
   }
+  , mode: 'production'
 }

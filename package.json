@@ -24,13 +24,13 @@
     "coffeescript": "^2.3.1",
     "mocha": "^6.0.2",
     "webpack": "^4.29.6",
-    "webpack-cli": "^3.2.3",
-    "windy-moon": "^4.0.4"
+    "webpack-cli": "^3.3.0",
+    "windy-moon": "^4.3.0"
   },
   "dependencies": {
     "ccnq4-pouchdb": "^1.1.2",
-    "frantic-team": "^1.5.0",
+    "frantic-team": "^1.6.0",
     "reject-tombstones": "^1.0.0",
-    "superagent": "^4.1.0"
+    "superagent": "^5.0.2"
   }
 }
