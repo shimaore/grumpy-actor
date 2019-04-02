@@ -4,7 +4,7 @@
   "description": "CouchDB documents for tools/trace/… databases",
   "main": "server.js",
   "scripts": {
-    "build": "npm install --only=dev && coffee --no-header -c *.coffee.md && webpack --config design.conf.js --optimize-minimize",
+    "build": "npm install && coffee --no-header -c *.coffee.md && webpack --config design.conf.js --optimize-minimize",
     "prepublishOnly": "npm run build",
     "pretest": "npm run build && coffee -c test/*.coffee.md",
     "test": "mocha"
@@ -21,7 +21,7 @@
     "babel-plugin-transform-regenerator": "^6.26.0",
     "babel-preset-es2015": "^6.24.1",
     "chai": "^4.1.2",
-    "coffeescript": "^2.3.1",
+    "coffeescript": "^2.4.0",
     "mocha": "^6.0.2",
     "webpack": "^4.29.6",
     "webpack-cli": "^3.3.0",
