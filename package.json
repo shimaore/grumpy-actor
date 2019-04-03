@@ -28,8 +28,8 @@
     "windy-moon": "^4.3.0"
   },
   "dependencies": {
-    "ccnq4-pouchdb": "^1.1.2",
-    "frantic-team": "^1.6.0",
+    "frantic-team": "^1.6.1",
+    "most-couchdb": "^2.0.1",
     "reject-tombstones": "^1.0.0",
     "superagent": "^5.0.2"
   }

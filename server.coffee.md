@@ -18,7 +18,7 @@
       lib[m] = fs.readFileSync (path.join __dirname, "./#{m}.bundle.js"), 'utf-8'
 
     Replicator = require 'frantic-team'
-    PouchDB = require 'ccnq4-pouchdb'
+    CouchDB = require 'most-couchdb/with-update'
     request = require 'superagent'
     assert = require 'assert'
 
@@ -116,16 +116,8 @@ We will replicate to/from the first server in the list (partially because it's t
 
 Create database
 
-          db = new PouchDB db_uri
-          yield db.info()
-
-          update = seem (doc) ->
-            {_rev} = yield db
-              .get doc._id
-              .catch -> _rev: null
-            delete doc._rev
-            doc._rev = _rev if _rev?
-            yield db.put doc
+          db = new CouchDB db_uri
+          yield db.create()
 
 Inject security document
 
@@ -135,11 +127,11 @@ Inject security document
 
 Inject design document
 
-          yield update design_document[type]
+          yield db.update design_document[type]
 
 Inject reject-tombstones document
 
-          yield update reject_tombstones
+          yield db.update reject_tombstones
 
 Setup master-master replication
 (between the first server in the list and the current server).
