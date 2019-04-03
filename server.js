@@ -1,5 +1,5 @@
 (function() {
-  var PouchDB, Replicator, assert, debug, design_document, fs, handler, i, len, lib, m, modules, path, pkg, reject_tombstones, request, seem,
+  var CouchDB, Replicator, assert, debug, design_document, fs, handler, i, len, lib, m, modules, path, pkg, reject_tombstones, request, seem,
     indexOf = [].indexOf;
 
   pkg = require('./package.json');
@@ -25,7 +25,7 @@
 
   Replicator = require('frantic-team');
 
-  PouchDB = require('ccnq4-pouchdb');
+  CouchDB = require('most-couchdb/with-update');
 
   request = require('superagent');
 
@@ -92,7 +92,7 @@
 
   handler = function(type) {
     return seem(function*() {
-      var central, db, db_name, db_uri, is_admin, is_role_admin, j, len1, role, security, server, servers, update;
+      var central, db, db_name, db_uri, is_admin, is_role_admin, j, len1, role, security, server, servers;
       role = `${type}s_admin`;
       servers = this.cfg[`${type}_servers`];
       security = {
@@ -127,27 +127,14 @@
         server = servers[j];
         db_uri = [server, db_name].join('/');
         // Create database
-        db = new PouchDB(db_uri);
-        yield db.info();
-        update = seem(function*(doc) {
-          var _rev;
-          ({_rev} = (yield db.get(doc._id).catch(function() {
-            return {
-              _rev: null
-            };
-          })));
-          delete doc._rev;
-          if (_rev != null) {
-            doc._rev = _rev;
-          }
-          return (yield db.put(doc));
-        });
+        db = new CouchDB(db_uri);
+        yield db.create();
         // Inject security document
         yield request.put(`${db_uri}/_security`).send(security);
         // Inject design document
-        yield update(design_document[type]);
+        yield db.update(design_document[type]);
         // Inject reject-tombstones document
-        yield update(reject_tombstones);
+        yield db.update(reject_tombstones);
         // Setup master-master replication
         // (between the first server in the list and the current server).
         if (central && server !== central) {
