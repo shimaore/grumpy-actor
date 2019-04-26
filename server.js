@@ -1,12 +1,10 @@
 (function() {
-  var CouchDB, Replicator, assert, debug, design_document, fs, handler, i, len, lib, m, modules, path, pkg, reject_tombstones, request, seem,
+  var CouchDB, Replicator, assert, debug, design_document, fs, handler, i, len, lib, m, modules, path, pkg, reject_tombstones, request,
     indexOf = [].indexOf;
 
   pkg = require('./package.json');
 
   debug = (require('debug'))(`${pkg.name}:server`);
-
-  seem = require('seem');
 
   fs = require('fs');
 
@@ -91,7 +89,7 @@
   };
 
   handler = function(type) {
-    return seem(function*() {
+    return async function() {
       var central, db, db_name, db_uri, is_admin, is_role_admin, j, len1, role, security, server, servers;
       role = `${type}s_admin`;
       servers = this.cfg[`${type}_servers`];
@@ -128,24 +126,24 @@
         db_uri = [server, db_name].join('/');
         // Create database
         db = new CouchDB(db_uri);
-        yield db.create();
+        await db.create();
         // Inject security document
-        yield request.put(`${db_uri}/_security`).send(security);
+        await request.put(`${db_uri}/_security`).send(security);
         // Inject design document
-        yield db.update(design_document[type]);
+        await db.update(design_document[type]);
         // Inject reject-tombstones document
-        yield db.update(reject_tombstones);
+        await db.update(reject_tombstones);
         // Setup master-master replication
         // (between the first server in the list and the current server).
         if (central && server !== central) {
-          yield Replicator(central, server, db_name, function(doc) {
+          await Replicator(central, server, db_name, function(doc) {
             doc.owner = "admin";
             doc.user_ctx = {
               name: "admin",
               roles: ["_admin", role, `${type}s_writer`]
             };
           });
-          yield Replicator(server, central, db_name, function(doc) {
+          await Replicator(server, central, db_name, function(doc) {
             doc.owner = "admin";
             return doc.user_ctx = {
               name: "admin",
@@ -157,7 +155,7 @@
       return this.json({
         ok: true
       });
-    });
+    };
   };
 
   this.include = function() {
