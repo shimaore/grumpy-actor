@@ -1,6 +1,5 @@
     pkg = require './package.json'
     debug = (require 'debug') "#{pkg.name}:server"
-    seem = require 'seem'
 
     fs = require 'fs'
     path = require 'path'
@@ -79,7 +78,7 @@
         '''
 
     handler = (type) ->
-      seem ->
+      ->
         role = "#{type}s_admin"
         servers = @cfg["#{type}_servers"]
 
@@ -117,28 +116,28 @@ We will replicate to/from the first server in the list (partially because it's t
 Create database
 
           db = new CouchDB db_uri
-          yield db.create()
+          await db.create()
 
 Inject security document
 
-          yield request
+          await request
             .put "#{db_uri}/_security"
             .send security
 
 Inject design document
 
-          yield db.update design_document[type]
+          await db.update design_document[type]
 
 Inject reject-tombstones document
 
-          yield db.update reject_tombstones
+          await db.update reject_tombstones
 
 Setup master-master replication
 (between the first server in the list and the current server).
 
           if central and server isnt central
 
-            yield Replicator central, server, db_name, (doc) ->
+            await Replicator central, server, db_name, (doc) ->
               doc.owner = "admin"
               doc.user_ctx =
                 name: "admin"
@@ -149,7 +148,7 @@ Setup master-master replication
                 ]
               return
 
-            yield Replicator server, central, db_name, (doc) ->
+            await Replicator server, central, db_name, (doc) ->
               doc.owner = "admin"
               doc.user_ctx =
                 name: "admin"
