@@ -126,7 +126,13 @@
         db_uri = [server, db_name].join('/');
         // Create database
         db = new CouchDB(db_uri);
-        await db.create();
+        if (!(await (async function() {
+          try {
+            return (await db.info());
+          } catch (error) {}
+        })())) {
+          await db.create();
+        }
         // Inject security document
         await request.put(`${db_uri}/_security`).send(security);
         // Inject design document
