@@ -116,7 +116,7 @@ We will replicate to/from the first server in the list (partially because it's t
 Create database
 
           db = new CouchDB db_uri
-          await db.create()
+          await db.create() unless try await db.info()
 
 Inject security document
 
