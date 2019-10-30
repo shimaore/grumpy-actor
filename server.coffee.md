@@ -77,32 +77,53 @@
           -> require('views/lib/trace').validate_user_doc.apply this, arguments
         '''
 
-    handler = (type) ->
+    handler = (type,plural = true) ->
       ->
-        role = "#{type}s_admin"
+        if plural
+          admin_role  = "#{type}s_admin"
+          writer_role = "#{type}s_writer"
+          reader_role = "#{type}s_reader"
+        else
+          admin_role  = "#{type}_admin"
+          writer_role = "#{type}_writer"
+          reader_role = "#{type}_reader"
+
         servers = @cfg["#{type}_servers"]
+        unless servers?.length?
+          @res.status 404
+          @json error:"Not configured for #{type}_servers"
+          @res.end()
+          return
+
+        extra_roles = @cfg["#{type}_members_roles"] ? []
 
         security =
           admins:
             names: []
-            roles: [role]
+            roles: [admin_role]
           members:
             names: []
-            roles: [role,"#{type}s_reader","#{type}s_writer"]
+            roles: [
+              admin_role
+              reader_role
+              writer_role
+              extra_roles...
+            ]
 
-        is_admin = '_admin' in @req.session.couchdb_roles
-        is_role_admin = is_admin or role in @req.session.couchdb_roles
+        if @req.session?.couchdb_roles?
+          is_admin = '_admin' in @req.session.couchdb_roles
+          is_role_admin = is_admin or admin_role in @req.session.couchdb_roles
 
-        unless @req.session.couchdb_roles? and is_role_admin
+        unless is_role_admin
           @res.status 403
-          @json error:"Must be #{role}"
+          @json error:"Must be #{admin_role}"
           @res.end()
           return
 
         db_name = @req.path.substr 1
         db_name = db_name.replace /\/$/, ''
 
-        debug "create_#{type}_database", {db_name}
+        debug "create #{type} database", {db_name}
 
 We will replicate to/from the first server in the list (partially because it's the first one where the database will be created).
 
@@ -126,7 +147,7 @@ Inject security document
 
 Inject design document
 
-          await db.update design_document[type]
+          await db.update design_document[type] if type of design_document
 
 Inject reject-tombstones document
 
@@ -143,8 +164,8 @@ Setup master-master replication
                 name: "admin"
                 roles: [
                   "_admin"
-                  role
-                  "#{type}s_writer"
+                  admin_role
+                  writer_role
                 ]
               return
 
@@ -154,11 +175,13 @@ Setup master-master replication
                 name: "admin"
                 roles: [
                   "_admin"
-                  role
-                  "#{type}s_writer"
+                  admin_role
+                  writer_role
                 ]
 
         @json ok:true
+        @res.end()
+        return
 
     @include = ->
 
@@ -177,3 +200,6 @@ The default prefixes for these are defined in `astonishing-competition` and `hug
 
       @put  /^\/cdr-[a-z\d_-]+\/?$/, @auth, handler 'cdr'
       @put  /^\/trace-[a-z\d_-]+\/?$/, @auth, handler 'trace'
+
+      @put  /^\/provisioning\/?$/, @auth, handler 'provisioning', false
+      @put  /^\/logging\/?$/, @auth, handler 'logging', false
