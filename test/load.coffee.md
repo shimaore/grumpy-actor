@@ -9,9 +9,9 @@
       user = process.env.COUCHDB_USER ? 'admin'
       pass = process.env.COUCHDB_PASSWORD ? 'password'
       cfg =
-        provisioning_servers: [ "http://#{user}:#{pass}@127.0.0.1:5984/" ]
+        provisioning_servers: [ "http://#{user}:#{pass}@couchdb:5984/" ]
         provisioning_members_roles: ['host']
-        cdr_servers: [ "http://#{user}:#{pass}@127.0.0.1:5984/" ]
+        cdr_servers: [ "http://#{user}:#{pass}@couchdb:5984/" ]
       app = zappa.app ->
         @helper {cfg}
         @auth = (req,res,next) ->
