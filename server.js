@@ -88,34 +88,53 @@
     }
   };
 
-  handler = function(type) {
+  handler = function(type, plural = true) {
     return async function() {
-      var central, db, db_name, db_uri, is_admin, is_role_admin, j, len1, role, security, server, servers;
-      role = `${type}s_admin`;
+      var admin_role, central, db, db_name, db_uri, extra_roles, is_admin, is_role_admin, j, len1, reader_role, ref, ref1, security, server, servers, writer_role;
+      if (plural) {
+        admin_role = `${type}s_admin`;
+        writer_role = `${type}s_writer`;
+        reader_role = `${type}s_reader`;
+      } else {
+        admin_role = `${type}_admin`;
+        writer_role = `${type}_writer`;
+        reader_role = `${type}_reader`;
+      }
       servers = this.cfg[`${type}_servers`];
+      if ((servers != null ? servers.length : void 0) == null) {
+        this.res.status(404);
+        this.json({
+          error: `Not configured for ${type}_servers`
+        });
+        this.res.end();
+        return;
+      }
+      extra_roles = (ref = this.cfg[`${type}_members_roles`]) != null ? ref : [];
       security = {
         admins: {
           names: [],
-          roles: [role]
+          roles: [admin_role]
         },
         members: {
           names: [],
-          roles: [role, `${type}s_reader`, `${type}s_writer`]
+          roles: [admin_role, reader_role, writer_role, ...extra_roles]
         }
       };
-      is_admin = indexOf.call(this.req.session.couchdb_roles, '_admin') >= 0;
-      is_role_admin = is_admin || indexOf.call(this.req.session.couchdb_roles, role) >= 0;
-      if (!((this.req.session.couchdb_roles != null) && is_role_admin)) {
+      if (((ref1 = this.req.session) != null ? ref1.couchdb_roles : void 0) != null) {
+        is_admin = indexOf.call(this.req.session.couchdb_roles, '_admin') >= 0;
+        is_role_admin = is_admin || indexOf.call(this.req.session.couchdb_roles, admin_role) >= 0;
+      }
+      if (!is_role_admin) {
         this.res.status(403);
         this.json({
-          error: `Must be ${role}`
+          error: `Must be ${admin_role}`
         });
         this.res.end();
         return;
       }
       db_name = this.req.path.substr(1);
       db_name = db_name.replace(/\/$/, '');
-      debug(`create_${type}_database`, {db_name});
+      debug(`create ${type} database`, {db_name});
       // We will replicate to/from the first server in the list (partially because it's the first one where the database will be created).
       central = null;
       if (servers.length > 1) {
@@ -135,8 +154,10 @@
         }
         // Inject security document
         await request.put(`${db_uri}/_security`).send(security);
-        // Inject design document
-        await db.update(design_document[type]);
+        if (type in design_document) {
+          // Inject design document
+          await db.update(design_document[type]);
+        }
         // Inject reject-tombstones document
         await db.update(reject_tombstones);
         // Setup master-master replication
@@ -146,21 +167,22 @@
             doc.owner = "admin";
             doc.user_ctx = {
               name: "admin",
-              roles: ["_admin", role, `${type}s_writer`]
+              roles: ["_admin", admin_role, writer_role]
             };
           });
           await Replicator(server, central, db_name, function(doc) {
             doc.owner = "admin";
             return doc.user_ctx = {
               name: "admin",
-              roles: ["_admin", role, `${type}s_writer`]
+              roles: ["_admin", admin_role, writer_role]
             };
           });
         }
       }
-      return this.json({
+      this.json({
         ok: true
       });
+      this.res.end();
     };
   };
 
@@ -174,7 +196,9 @@
     // The default prefixes for these are defined in `astonishing-competition` and `huge-play`.
     // (These are both currently unused; `astonishing-competition` still needs to be rewritten to properly aggregate upstream, while the trace code was never rewritten to use multiple databases.)
     this.put(/^\/cdr-[a-z\d_-]+\/?$/, this.auth, handler('cdr'));
-    return this.put(/^\/trace-[a-z\d_-]+\/?$/, this.auth, handler('trace'));
+    this.put(/^\/trace-[a-z\d_-]+\/?$/, this.auth, handler('trace'));
+    this.put(/^\/provisioning\/?$/, this.auth, handler('provisioning', false));
+    return this.put(/^\/logging\/?$/, this.auth, handler('logging', false));
   };
 
 }).call(this);
