@@ -139,6 +139,12 @@ Create database
           db = new CouchDB db_uri
           await db.create() unless try await db.info()
 
+Set revs-limit to 2
+
+          await request
+            .put "#{db_uri}/_revs_limit"
+            .send '2'
+
 Inject security document
 
           await request
