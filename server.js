@@ -152,6 +152,9 @@
         })())) {
           await db.create();
         }
+        // Set revs-limit to 2
+        await request.put(`${db_uri}/_revs_limit`).send('2');
+        console.log(((await request.get(`${db_uri}/_revs_limit`))).text);
         // Inject security document
         await request.put(`${db_uri}/_security`).send(security);
         if (type in design_document) {
